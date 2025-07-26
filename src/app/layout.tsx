@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Spline from '@splinetool/react-spline/next';
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +29,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+<Spline
+            scene="https://prod.spline.design/VdnaWUzwVsD3tBUO/scene.splinecode"
+            loading-anim-type="spinner-small-dark" 
+            style={{
+              position: 'absolute',
+          //     left: 0,
+          //     top: 0,
+          //     right: 50,
+              width: '100%',
+              height: '100vh',
+              zIndex: -1,
+          }} 
+          />  
         {children}
       </body>
     </html>
