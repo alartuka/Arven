@@ -1,96 +1,249 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { Pinecone } from '@pinecone-database/pinecone'
+import { Groq } from 'groq-sdk'
+import { OpenAI } from 'openai'
+import { Exa } from 'exa-js'
 
-const systemPrompt = `Your name is Arven.
+const systemPrompt = `You are Aven's customer service AI assistant. You help customers with questions about Aven Card, which is a financial services product that helps users build credit and manage their finances.
 
-You are the official AI Customer Support agent for Aven, a financial services and fintech company. Your role is to provide helpful, accurate, and trustworthy information about Aven's products, services, and company to customers and prospective customers.
+Your role is to:
+- Provide helpful, accurate information about Aven Card features and services
+- Guide customers through common processes and troubleshooting
+- Maintain a friendly, professional, and supportive tone
+- Use the provided context from Aven's official documentation and website
+- If you don't know something specific, direct customers to contact Aven support directly
 
-Core Guidelines:
+Always prioritize customer satisfaction and provide clear, actionable responses based on the retrieved information about Aven.`
 
-1. Answer Based on Provided Data
-- ONLY answer questions using information from the context data provided to you
-- If the provided context doesn't contain sufficient information to answer a question, clearly state: "I don't have enough information in my current knowledge base to answer that question accurately. For the most up-to-date information, please contact Aven customer support or visit our website."
-- Never make up or infer information that isn't explicitly stated in the provided context
-
-2. Tone and Voice
-- Professional yet approachable: Sound knowledgeable but not overly technical
-- Helpful and customer-focused: Prioritize solving the user's problem or answering their question
-- Trustworthy: Be transparent about limitations and always provide accurate information
-- Concise but complete: Give thorough answers without being unnecessarily verbose
-
-3. Response Structure
-For each response:
-1. Start with a clear, direct answer to the user's question
-2. Provide relevant context and details from the provided data
-3. Suggest relevant actions the user can take (when appropriate)
-
-4. Specific Topics to Handle
-
-Products & Services:
-- Explain Aven's financial products and services clearly
-- Highlight key features and benefits
-- Compare different options when relevant
-
-Eligibility & Applications:
-- Provide clear information about requirements
-- Guide users through application processes
-- Be transparent about approval criteria
-
-Fees & Pricing:
-- Give accurate, up-to-date fee information
-- Explain any conditions or variables
-- Be transparent about all costs
-
-Security & Trust:
-- Emphasize Aven's security measures and regulatory compliance
-- Address customer concerns about safety and legitimacy
-- Provide reassurance backed by facts
-
-Customer Support:
-- Direct users to appropriate support channels
-- Provide contact information and hours
-- Set clear expectations for response times
-
-5. What NOT to Do
-- Don't provide financial advice or recommendations beyond explaining Aven's products
-- Don't make promises about approval, rates, or terms that aren't guaranteed
-- Don't share sensitive customer information or ask for personal details
-- Don't speculate about future products or company plans not mentioned in your data
-- Don't disparage competitors - focus on Aven's strengths
-- Don't provide information about other companies unless it's in your provided context
-
-6. When You Don't Know
-If you encounter questions about:
-- Specific account issues: Direct to customer support
-- Information not in your data: Clearly state limitations and suggest official channels
-- Technical problems: Provide troubleshooting steps if available, otherwise direct to support
-- Legal or regulatory questions: Direct to official documentation or support
-
-Example Response Format
-
-User Question: "What credit score do I need for an Aven card?"
-
-Good Response:
-"Aven typically considers applicants with credit scores of [specific range if provided in context]. However, credit score is just one factor in our approval process - we also consider [other factors mentioned in context].
-
-Aven focuses on [unique approach mentioned in data]. This means that even if your credit score is [relevant details from context].
-
-To apply and get a personalized assessment, you can [application process from context]. For specific questions about your eligibility, I recommend contacting Aven customer support at [contact info from context]."
-
-Remember:
-- You represent Aven - be professional and helpful
-- Accuracy is more important than being comprehensive
-- When in doubt, direct users to official channels
-- Always prioritize the customer's needs and experience
-- Use only the information provided in your knowledge base
-
-Your goal is to be the most helpful, accurate, and trustworthy source of information about Aven while staying within the bounds of your provided data.
-`
-
-export async function POST(req) {
+export async function POST(req: NextRequest) {
     const data = await req.json()
+
+    // initialize pinecone
     const pc = new Pinecone({
-        apiKey: process.env.PINECONE_API_KEY,
-      })
-      
+        apiKey: process.env.NEXT_PUBLIC_PINECONE_API_KEY!,
+    })
+
     const index = pc.index('arven').namespace('company-documents')
+
+    // initialize groq
+    const groq = new Groq({
+        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+    })
+    
+    // initialize openai
+    const openai = new OpenAI({ 
+        apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    })
+
+    // Get the latest user message
+        const text = data[data.length - 1].content
+    
+     // create embedding for the user query
+     const embedding = await openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: text,
+        encoding_format: 'float',
+    })
+
+    // query pinecone for relevant information about Aven
+    const results = await index.query({
+        topK: 3, // get top 3 most relevant results
+        includeMetadata: true,
+        vector: embedding.data[0].embedding,
+    })
+
+    // format results for context
+    let contextString = '\n\nRelevant Aven Documentation:\n'
+    results.matches.forEach((match, index) => {
+        if (match.score && match.score > 0.7) { // only include high-confidence matches
+            contextString += `
+                Context ${index + 1}:
+                Title: ${match.metadata?.title || 'Aven Documentation'}
+                Content: ${match.metadata?.content || match.metadata?.text || ''}
+                Source: ${match.metadata?.url || 'Aven Official Documentation'}
+                Relevance Score: ${(match.score * 100).toFixed(1)}%
+                ---
+            `
+        }
+    })
+
+    // if no high-confidence matches, try real-time search with Exa
+    if (results.matches.length === 0 || results.matches[0].score! < 0.7) {
+      contextString += await searchWithExa(text)
+    }
+
+    // prepare improved message with context
+    const lastMessage = data[data.length - 1]
+    const lastMessageContent = lastMessage.content + contextString
+    const lastDataWithoutLastMessage = data.slice(0, data.length - 1)
+
+    // create completion with Groq
+    const completion = await groq.chat.completions.create({
+        messages: [
+            { role: 'system', content: systemPrompt },
+            ...lastDataWithoutLastMessage,
+            { role: 'user', content: lastMessageContent },
+        ],
+        model: 'llama-3.1-8b-instant', 
+        stream: true,
+        // temperature: 0.7,
+        // max_tokens: 1000,
+    })
+
+    // create completion with OpenAI
+    // const completion = await openai.chat.completions.create({
+    //     messages: [
+    //         { role: 'system', content: systemPrompt },
+    //         ...lastDataWithoutLastMessage,
+    //         { role: 'user', content: lastMessageContent },
+    //     ],
+    //     model: 'gpt-4o-mini',
+    //     stream: true,
+    // })
+
+    // create streaming response
+    const stream = new ReadableStream({
+        async start(controller) {
+            const encoder = new TextEncoder()
+            try {
+                for await (const chunk of completion) {
+                    const content = chunk.choices[0]?.delta?.content
+                    if (content) {
+                        const text = encoder.encode(content)
+                        controller.enqueue(text)
+                    }
+                }
+            } catch (err) {
+                console.error('Streaming error:', err)
+                controller.error(err)
+            } finally {
+                controller.close()
+            }
+        },
+    })
+        
+    return new NextResponse(stream)
+}
+
+
+async function searchWithExa(query: string): Promise<string> {
+    // initialize exa
+    const exa = new Exa(process.env.NEXT_PUBLIC_EXA_API_KEY)
+    // Search queries specific to Aven
+    const searchQueries = [
+      `site:aven.com "${query}" support help`,
+      `site:aven.com "aven card" ${query}`,
+      `"Aven card" ${query} customer service help`,
+      `Aven financial services ${query} support`
+    ]
+    
+    let exaResults = '\n\nReal-time Aven Information:\n'
+
+    // for (const searchQuery of searchQueries.slice(0, 2)) { // limiting to 2 queries to avoid rate limits
+    for (const searchQuery of searchQueries) {
+        try {
+            const results = await exa.searchAndContents(searchQuery, {
+            type: "neural",
+            numResults: 3,
+            text: true,
+            highlights: true,
+            useAutoprompt: true,
+            startPublishedDate: "2023-01-01",
+            includeDomains: ["aven.com"] // Focus on official Aven content
+            })
+        
+            results.results.forEach((result, index) => {
+                if (result.text && result.text.length > 100) {
+                    exaResults += `
+                        Real-time Result ${index + 1}:
+                        Title: ${result.title}
+                        Content: ${result.text.substring(0, 500)}...
+                        URL: ${result.url}
+                        Published: ${result.publishedDate || 'Recent'}
+                        ---
+                    `
+                }
+            })
+
+        } catch (searchError) {
+            console.error(`Error with Exa search query "${searchQuery}":`, searchError)
+            continue
+        }
+    }
+    
+    return exaResults
+}
+
+
+export async function updatePineconeIndex() {
+    const exa = new Exa(process.env.NEXT_PUBLIC_EXA_API_KEY!)
+    const pc = new Pinecone({ apiKey: process.env.NEXT_PUBLIC_PINECONE_API_KEY! })
+    const index = pc.index('aven-support').namespace('aven-docs')
+    const openai = new OpenAI({ apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY! })
+    
+    const searchQueries = [
+      'site:aven.com aven card',
+      'site:aven.com "aven card" support articles',
+      'site:aven.com "aven card" education how it works',
+      'site:aven.com "aven card" reviews testimonials',
+      'site:aven.com "aven card" about us',
+      'site:aven.com "aven card" features benefits',
+      'site:aven.com "aven card" application process',
+      'site:aven.com "aven card" customer support help'
+    ]
+    
+    const allResults = []
+
+    for (const query of searchQueries) {
+        try {
+            const results = await exa.searchAndContents(query, {
+                type: "neural",
+                numResults: Math.floor(100 / searchQueries.length),
+                text: true,
+                highlights: true,
+                useAutoprompt: true,
+                startPublishedDate: "2023-01-01"
+            })
+            allResults.push(...results.results)
+        } catch (e) {
+            console.error(`Error searching for query '${query}':`, e)
+            continue
+        }
+    }
+
+    // Process and upsert to Pinecone
+    const vectors = []
+    
+    for (let i = 0; i < allResults.length; i++) {
+      const result = allResults[i]
+      if (result.text && result.text.length > 50) {
+        const embedding = await openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: result.text,
+          encoding_format: 'float',
+        })
+        
+        vectors.push({
+          id: `aven-doc-${i}-${Date.now()}`,
+          values: embedding.data[0].embedding,
+          metadata: {
+            title: result.title ?? '',
+            content: result.text,
+            url: result.url ?? '',
+            publishedDate: result.publishedDate ?? '',
+            highlights: result.highlights?.join(' ') || '',
+            source: 'exa-search'
+          }
+        })
+      }
+    }
+    
+    // Upsert in batches
+    const batchSize = 100
+    for (let i = 0; i < vectors.length; i += batchSize) {
+        const batch = vectors.slice(i, i + batchSize)
+        await index.upsert(batch)
+    }
+    
+    console.log(`Successfully updated Pinecone index with ${vectors.length} vectors`)
+}
