@@ -1,5 +1,6 @@
 "use client";
 
+import ChatBot from '@/components/ChatBot';
 import { Button } from '@/components/ui/button';
 import { BotIcon, Send, StepBack, User } from 'lucide-react';
 import { useRouter } from "next/navigation";
@@ -11,111 +12,108 @@ interface Message {
 }
 
 export default function Bot() {
-  const { push } = useRouter();
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  // const { push } = useRouter();
+  // const [input, setInput] = useState('');
+  // const [isLoading, setIsLoading] = useState(false);
+  // const messagesEndRef = useRef<HTMLDivElement | null>(null);
   
-  const handleBack = () => {
-    push("/");
-  };
+  // const handleBack = () => {
+  //   push("/");
+  // };
 
-  const [messages, setMessages] = useState([{
-    role: 'assistant',
-    content: 'Hi! I\'m Arven, Aven\'s customer service assistant. How can I help you?'
-  }]);
+  // const [messages, setMessages] = useState([{
+  //   role: 'assistant',
+  //   content: 'Hi! I\'m Arven, Aven\'s customer service assistant. How can I help you?'
+  // }]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // const scrollToBottom = () => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return; // Don't send empty messages
+  // const handleSend = async () => {
+  //   if (!input.trim() || isLoading) return; // Don't send empty messages
     
-    const userMessage = { role: 'user', content: input };
+  //   const userMessage = { role: 'user', content: input };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
+  //   setMessages(prev => [...prev, userMessage]);
+  //   setInput('');
+  //   setIsLoading(true);
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([...messages, userMessage]),
-      });
+  //   try {
+  //     const response = await fetch('/api/chat', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify([...messages, userMessage]),
+  //     });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
+  //     if (!response.ok) {
+  //       throw new Error('Failed to get response');
+  //     }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantMessage = '';
+  //     const reader = response.body?.getReader();
+  //     const decoder = new TextDecoder();
+  //     let assistantMessage = '';
 
-      // add empty assistant message to show loading
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+  //     // add empty assistant message to show loading
+  //     setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      while (true) {
-        const { done, value } = await reader?.read() || {};
-        if (done) break;
+  //     while (true) {
+  //       const { done, value } = await reader?.read() || {};
+  //       if (done) break;
 
-        const chunk = decoder.decode(value);
-        assistantMessage += chunk;
+  //       const chunk = decoder.decode(value);
+  //       assistantMessage += chunk;
 
-        // update the last message (assistant's response)
-        setMessages(prev => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1] = {
-            role: 'assistant',
-            content: assistantMessage
-          };
+  //       // update the last message (assistant's response)
+  //       setMessages(prev => {
+  //         const newMessages = [...prev];
+  //         newMessages[newMessages.length - 1] = {
+  //           role: 'assistant',
+  //           content: assistantMessage
+  //         };
 
-          return newMessages;
-        });
-      }
+  //         return newMessages;
+  //       });
+  //     }
 
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please try again or contact Aven support directly.'
-      }]);
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     setMessages(prev => [...prev, {
+  //       role: 'assistant',
+  //       content: 'I apologize, but I encountered an error. Please try again or contact Aven support directly.'
+  //     }]);
 
-    } finally {
-      setIsLoading(false);
-      scrollToBottom();
-      setInput(''); // Clear input after sending
-    }
-  }
+  //   } finally {
+  //     setIsLoading(false);
+  //     scrollToBottom();
+  //     setInput(''); // Clear input after sending
+  //   }
+  // }
 
   
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  // const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  //   if (e.key === 'Enter' && !e.shiftKey) {
+  //     e.preventDefault();
+  //     handleSend();
+  //   }
+  // };
 
   return (
-    <div className="flex flex-col h-screen max-w-7xl mx-auto from-blue-50 to-indigo-100">
-      <div className="bg-white shadow-lg border-b border-gray-200 p-4">
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="icon" onClick={handleBack} className="position-absolute bottom-18px">
+    <div className="flex flex-col h-screen max-w-8xl mx-auto from-blue-50 to-indigo-100">
+      
+          {/* <Button variant="outline" size="icon" onClick={handleBack} className="position-absolute bottom-18px">
             <StepBack className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+          </Button> */}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <div
             key={index}
@@ -164,10 +162,10 @@ export default function Bot() {
         )}
 
         <div ref={messagesEndRef} />
-      </div>
+      </div> */}
 
       {/* Input */}
-      <div className="bg-white border-t border-gray-200 p-4">
+      {/* <div className="bg-white border-t border-gray-200 p-4">
         <div className="flex space-x-3">
           <textarea
             value={input}
@@ -186,8 +184,8 @@ export default function Bot() {
             <Send className="w-5 h-5" />
           </Button>
         </div>
-      </div>
-        
+      </div> */}
+      <ChatBot />
     </div>
   )
 }

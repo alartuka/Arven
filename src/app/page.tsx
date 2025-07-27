@@ -13,8 +13,6 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-4 height-100vh">
-      {/* button should be closer to the buttom of the screen
-       */}
        <main className="flex flex-col items-center justify-center flex-2 text-center">
           <Button variant="outline" onClick={handleButton} className="position-absolute bottom-18px">Talk to Arven</Button>
           <p className="text-sm mt-4 whitespace-nowrap overflow-hidden text-overflow: ellipsis">
