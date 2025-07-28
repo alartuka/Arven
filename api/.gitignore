@@ -1,0 +1,11 @@
+# backend
+venv/
+.env*
+.venv/
+__pycache__/
+*.py
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt

@@ -1,0 +1,29 @@
+{
+    "builds": [
+        {
+            "src": "arven-app/build/**",
+            "use": "@vercel/static"
+       },
+        {
+            "src": "api/main.py",
+            "use": "@vercel/python"
+        }
+    ],
+
+
+
+    "routes": [
+        {
+            "src": "/chat",
+            "dest": "/api/main.py"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/arven-app/build/$1"
+        }
+    ],
+
+    "buildCommand": "npm run build",
+    "framework": "nextjs",
+    "installCommand": "npm install"
+}
