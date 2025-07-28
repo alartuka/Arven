@@ -10,3 +10,9 @@ groq
 scikit-learn
 numpy
 python-dotenv
+exa_py
+pydantic
+requests
+beautifulsoup4
+lxml
+

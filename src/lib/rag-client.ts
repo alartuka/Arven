@@ -9,6 +9,11 @@ export interface Source {
   source: string;
   title: string;
   score: number;
+  domain: string;
+  verified_aven: boolean;
+  crawl_method?: string;
+  source_type?: string;
+  is_aven_domain: boolean;
 }
 
 export interface ChatRequest {
@@ -37,7 +42,7 @@ class RAGClient {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message,
+          message: message,
           conversation_id: conversationId,
         }),
       });
@@ -51,15 +56,6 @@ class RAGClient {
     } catch (error) {
       console.error('RAG API Error:', error);
       throw error;
-    }
-  }
-
-  async healthCheck(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseURL}/health`);
-      return response.ok;
-    } catch {
-      return false;
     }
   }
 }

@@ -61,9 +61,8 @@ export default function ChatBot() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
             <div className="text-center text-gray-500 mt-8">
-                <h3 className="text-lg font-medium mb-2">Welcome to Aven Support</h3>
-                <p>Ask me anything about Aven's financial services and products!</p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                
+                <div className="mb-2 flex flex-wrap justify-center gap-2">
                 {[
                     "What is the Aven card?",
                     "How do I apply?",
