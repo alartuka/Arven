@@ -24,7 +24,15 @@ export default function Home() {
             >
               Aven&apos;s
             </a>
-            {' '}Customer Support Agent&nbsp;designed to help you with your queries and tasks
+            {' '}Customer Support Agent&nbsp;designed to help you throughout your journey with {' '}
+            <a
+              className="flex items-center gap-2 text-sm font-mono underline inline-flex"
+              href="https://aven.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Aven
+            </a>
           </p>
        </main>
 
