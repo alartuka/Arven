@@ -6,11 +6,10 @@ A Customer Support AI Agent for [Aven's website](https://www.aven.com/)
 ## Key Features
 
 ## Tech Stack
-- Next.js
-- Flask
-- Pinecone
-- OpenRouter API
-- Spline
+- **Languages:** Python, TypeScript
+- **APIs & Services:** Hugging Face Inference API (embeddings), Pinecone (vector database), Exa API, Groq API  
+- **Libraries & Frameworks:** Next.js, FastAPI, scikit-learn, NumPy, sentence-transformers  
+- **Tools:** Jupyter Notebook, Git
 
 # [Demo](https://youtu.be/MsgZs3zdSh8)
 Click image below ⬇️
