@@ -1,14 +1,19 @@
 # Arven
-A Customer Support AI Agent for [Aven's website](https://www.aven.com/)
+Customer Support AI Agent for [Aven's website](https://www.aven.com/)
 
-## Why This Project?
-- This project was built as my first submission for Headstarter’s BuildCore Engineer Sprint Program
-- The task was to create a customer-support AI agent for Aven
-- Aven's existing chatbot only redirected users to support articles and failed to resolve issues directly, resulting in friction, unresolved queries, and avoidable churn
-- I treated the assignment as a chance to design a focused, resolution-driven agent and introduced a mascot to increase engagement without diluting function
-- This serves as my first real RAG implementation aimed at solving an active business problem rather than a hypothetical scenario
+## Problem Definition
+- **Ineffective Chatbot:** Only redirects to articles and offers no interaction for support
+
+- **Missed Retention Opportunities:** Poor support experience leads to confusion, delayed actions, or user churn
+
+- **Fragmented Support Experience:** Users navigate long articles with no direct  answer
 
 ## Key Features
+- **Centralized, Searchable Knowledge:** Turns Aven’s content into quick, searchable answers
+
+- **Direct, Human-Like Answers**: Provide clear, conversational responses; no more article-hunting
+
+- **Cited and Safe Responses**: Answers are sourced and guardrails protect users
 
 ## Tech Stack
 - **Languages:** Python, TypeScript
@@ -16,10 +21,17 @@ A Customer Support AI Agent for [Aven's website](https://www.aven.com/)
 - **Libraries & Frameworks:** Next.js, FastAPI, scikit-learn, NumPy, sentence-transformers  
 - **Tools:** Jupyter Notebook, Git
 
-## [Demo](https://youtu.be/MsgZs3zdSh8)
+## Demo & Pitch
 Click image below ⬇️
 
 [![Arven Demo](https://img.youtube.com/vi/MsgZs3zdSh8/0.jpg)](https://www.youtube.com/watch?v=MsgZs3zdSh8)
+
+## Limitations
+- Voice input not yet supported
+
+- Automatic knowledge-base updates every time the website is changed is not implemented
+
+- Advanced safety and filtering logic incomplete
 
 
 ## License
