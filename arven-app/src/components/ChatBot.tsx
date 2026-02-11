@@ -85,7 +85,7 @@ export default function ChatBot() {
                             How can I help you today?
                         </h3>
                         <p className="text-gray-400">
-                            Ask me anything about Aven's products and services
+                            Ask me anything about Aven&apos;s products and services
                         </p>
                     </div>
                     
