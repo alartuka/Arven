@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
         {
-            "src": "arven-app/build/**",
+            "src": "./build/**",
             "use": "@vercel/static"
        },
         {
@@ -17,7 +17,7 @@
         },
         {
             "src": "/(.*)",
-            "dest": "/arven-app/build/$1"
+            "dest": "./build/$1"
         }
     ]
 }
