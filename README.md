@@ -38,7 +38,3 @@ Click image below ⬇️
 - Distributed under the ***BSD 3-Clause License***. See [**LICENSE**](https://github.com/alartuka/Arven/blob/81580c61a501cb1c69696d1f59986d7a2fad4afb/LICENSE) for more information.
 
 
-## Let's Connect!
-- **Portfolio**: [tuka-alsharief.vercel.app](tuka-alsharief.vercel.app)
-
-- **LinkedIn**: [/in/tukaalarbi](linkedin.com/in/tukaalarbi)
